@@ -1,1 +1,491 @@
+<!doctype html>
+<html lang="fr">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#f2f0e9">
+	<title>Carte de contact | vCard</title>
+	<style>
+		:root {
+			color-scheme: light;
+			--paper: #f2f0e9;
+			--surface: #fbfaf6;
+			--ink: #20342d;
+			--muted: #777a70;
+			--line: #d9d8cd;
+			--accent: #c85a3e;
+			--forest: #193b32;
+			--lime: #c9d796;
+			--serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+			--sans: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			min-width: 320px;
+			min-height: 100vh;
+			margin: 0;
+			background-color: var(--paper);
+			background-image: radial-gradient(#d2d0c6 0.65px, transparent 0.65px);
+			background-size: 8px 8px;
+			color: var(--ink);
+			font-family: var(--sans);
+			-webkit-font-smoothing: antialiased;
+		}
+
+		button, input, textarea { font: inherit; }
+
+		.page-shell {
+			width: min(1120px, calc(100% - 48px));
+			margin: 0 auto;
+			padding: 34px 0 44px;
+		}
+
+		.topline {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding-bottom: 19px;
+			border-bottom: 1px solid var(--line);
+			color: var(--muted);
+			font-size: 11px;
+			font-weight: 650;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+		}
+
+		.wordmark { display: flex; align-items: center; gap: 10px; }
+		.wordmark-mark {
+			display: grid;
+			width: 25px;
+			height: 25px;
+			place-items: center;
+			border: 1px solid var(--ink);
+			border-radius: 50%;
+			color: var(--accent);
+			font-family: var(--serif);
+			font-size: 15px;
+			letter-spacing: 0;
+		}
+
+		.topline-note { letter-spacing: 0.04em; text-transform: none; }
+
+		main { padding-top: 49px; }
+
+		.intro { max-width: 650px; margin-bottom: 34px; }
+		.eyebrow {
+			margin: 0 0 12px;
+			color: var(--accent);
+			font-size: 10px;
+			font-weight: 700;
+			letter-spacing: 0.16em;
+			text-transform: uppercase;
+		}
+
+		h1 {
+			margin: 0;
+			font-family: var(--serif);
+			font-size: clamp(36px, 5vw, 52px);
+			font-weight: 400;
+			line-height: 1.04;
+			letter-spacing: 0;
+		}
+
+		.intro-copy {
+			margin: 13px 0 0;
+			color: var(--muted);
+			font-size: 14px;
+			line-height: 1.6;
+		}
+
+		.workspace {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) minmax(340px, 0.9fr);
+			gap: clamp(36px, 7vw, 88px);
+			align-items: start;
+		}
+
+		.section-heading {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			gap: 16px;
+			padding-bottom: 12px;
+			border-bottom: 1px solid var(--line);
+		}
+
+		h2 {
+			margin: 0;
+			font-size: 12px;
+			font-weight: 700;
+			letter-spacing: 0.1em;
+			text-transform: uppercase;
+		}
+
+		.section-count { color: var(--muted); font-size: 11px; }
+
+		.form-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 17px 14px;
+			padding-top: 19px;
+		}
+
+		.field { display: grid; gap: 7px; min-width: 0; }
+		.field-wide { grid-column: 1 / -1; }
+
+		label {
+			color: #48554d;
+			font-size: 11px;
+			font-weight: 650;
+		}
+
+		input, textarea {
+			width: 100%;
+			border: 1px solid var(--line);
+			border-radius: 2px;
+			outline: none;
+			background: var(--surface);
+			color: var(--ink);
+			font-size: 13px;
+			transition: border-color 150ms ease, box-shadow 150ms ease;
+		}
+
+		input { height: 42px; padding: 0 12px; }
+		textarea { min-height: 75px; padding: 10px 12px; resize: vertical; }
+
+		input::placeholder, textarea::placeholder { color: #a1a197; }
+		input:focus, textarea:focus {
+			border-color: var(--forest);
+			box-shadow: 0 0 0 2px rgb(25 59 50 / 10%);
+		}
+
+		.preview-panel { position: sticky; top: 24px; }
+		.preview-caption {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin: 0 0 13px;
+			color: var(--muted);
+			font-size: 10px;
+			font-weight: 650;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+		}
+
+		.live-dot {
+			width: 7px;
+			height: 7px;
+			border-radius: 50%;
+			background: #6b9568;
+			box-shadow: 0 0 0 3px rgb(107 149 104 / 14%);
+		}
+
+		.contact-card {
+			position: relative;
+			min-height: 342px;
+			overflow: hidden;
+			padding: 30px;
+			border-radius: 3px;
+			background-color: var(--forest);
+			background-image: linear-gradient(135deg, transparent 0 65%, rgb(201 215 150 / 8%) 65% 65.2%, transparent 65.2%), repeating-linear-gradient(0deg, transparent, transparent 27px, rgb(255 255 255 / 3%) 28px);
+			color: #f4f1e7;
+			box-shadow: 0 15px 34px rgb(35 48 40 / 13%);
+			animation: arrive 500ms ease both;
+		}
+
+		.card-top, .card-bottom {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.card-top { color: #c6ceb9; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+		.card-symbol { color: var(--lime); font-family: var(--serif); font-size: 19px; letter-spacing: 0; }
+
+		.card-identity { margin-top: 55px; }
+		.card-name {
+			overflow-wrap: anywhere;
+			margin: 0;
+			font-family: var(--serif);
+			font-size: clamp(29px, 3.2vw, 38px);
+			font-weight: 400;
+			line-height: 1.08;
+		}
+
+		.card-role { min-height: 17px; margin: 9px 0 0; color: #c6ceb9; font-size: 12px; }
+		.card-company { min-height: 16px; margin: 4px 0 0; color: var(--lime); font-size: 11px; }
+		.card-divider { height: 1px; margin: 24px 0 17px; background: rgb(255 255 255 / 19%); }
+
+		.card-details { display: grid; gap: 9px; min-height: 39px; }
+		.card-detail { overflow-wrap: anywhere; color: #f0eee5; font-size: 11px; text-decoration: none; }
+		.card-detail:hover { color: var(--lime); }
+		.card-note { margin: 13px 0 0; color: #c6ceb9; font-family: var(--serif); font-size: 13px; line-height: 1.45; }
+
+		.card-bottom { margin-top: 22px; color: #aab7a9; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
+		.card-bottom span:last-child { color: var(--lime); }
+
+		.actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 15px; }
+		.actions button {
+			min-height: 43px;
+			padding: 0 16px;
+			border: 1px solid var(--forest);
+			border-radius: 2px;
+			background: var(--forest);
+			color: white;
+			cursor: pointer;
+			font-size: 12px;
+			font-weight: 650;
+			transition: background-color 150ms ease, color 150ms ease;
+		}
+
+		.actions button:hover { background: #285447; }
+		.actions .secondary { background: transparent; color: var(--forest); }
+		.actions .secondary:hover { background: rgb(25 59 50 / 7%); }
+		button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+		.status { min-height: 17px; margin: 9px 0 0; color: var(--muted); font-size: 11px; }
+
+		@keyframes arrive {
+			from { opacity: 0; transform: translateY(8px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+
+		@media (max-width: 760px) {
+			.page-shell { width: min(560px, calc(100% - 36px)); padding-top: 22px; }
+			main { padding-top: 36px; }
+			.workspace { grid-template-columns: 1fr; gap: 34px; }
+			.preview-panel { position: static; }
+			.contact-card { min-height: 320px; }
+		}
+
+		@media (max-width: 420px) {
+			.page-shell { width: calc(100% - 28px); }
+			.topline-note { font-size: 10px; }
+			.form-grid { gap: 15px 10px; }
+			.contact-card { padding: 23px; }
+			.actions { grid-template-columns: 1fr; }
+			.actions .secondary { min-height: 39px; }
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			*, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+		}
+	</style>
+</head>
+<body>
+	<div class="page-shell">
+		<header class="topline">
+			<div class="wordmark"><span class="wordmark-mark" aria-hidden="true">v.</span><span>Carte de contact</span></div>
+			<span class="topline-note">Format universel · vCard</span>
+		</header>
+
+		<main>
+			<section class="intro" aria-labelledby="page-title">
+				<p class="eyebrow">Votre identité, simplement</p>
+				<h1 id="page-title">Une carte à votre image.</h1>
+				<p class="intro-copy">Ajoutez vos coordonnées. Votre fiche de contact est prête à être partagée.</p>
+			</section>
+
+			<div class="workspace">
+				<section class="details-panel" aria-labelledby="details-title">
+					<div class="section-heading">
+						<h2 id="details-title">Vos informations</h2>
+						<span class="section-count">Modifiables à tout moment</span>
+					</div>
+
+					<form id="contact-form" class="form-grid" autocomplete="on">
+						<div class="field">
+							<label for="first-name">Prénom</label>
+							<input id="first-name" name="given-name" autocomplete="given-name" placeholder="Camille">
+						</div>
+						<div class="field">
+							<label for="last-name">Nom</label>
+							<input id="last-name" name="family-name" autocomplete="family-name" placeholder="Martin">
+						</div>
+						<div class="field field-wide">
+							<label for="role">Fonction</label>
+							<input id="role" name="role" autocomplete="organization-title" placeholder="Votre fonction">
+						</div>
+						<div class="field field-wide">
+							<label for="organization">Organisation</label>
+							<input id="organization" name="organization" autocomplete="organization" placeholder="Votre entreprise ou activité">
+						</div>
+						<div class="field">
+							<label for="phone">Téléphone</label>
+							<input id="phone" name="tel" type="tel" autocomplete="tel" placeholder="+33 6 00 00 00 00">
+						</div>
+						<div class="field">
+							<label for="email">E-mail</label>
+							<input id="email" name="email" type="email" autocomplete="email" placeholder="bonjour@exemple.fr">
+						</div>
+						<div class="field field-wide">
+							<label for="website">Site web</label>
+							<input id="website" name="url" type="url" autocomplete="url" placeholder="https://exemple.fr">
+						</div>
+						<div class="field field-wide">
+							<label for="address">Adresse</label>
+							<input id="address" name="street-address" autocomplete="street-address" placeholder="Ville, région, pays">
+						</div>
+						<div class="field field-wide">
+							<label for="note">Quelques mots</label>
+							<textarea id="note" name="note" placeholder="Une courte présentation (facultatif)"></textarea>
+						</div>
+					</form>
+				</section>
+
+				<section class="preview-panel" aria-label="Aperçu de votre carte">
+					<p class="preview-caption"><span>Aperçu en direct</span><span class="live-dot" aria-hidden="true"></span></p>
+					<article class="contact-card" aria-live="polite">
+						<div class="card-top"><span>Fiche de contact</span><span class="card-symbol" aria-hidden="true">v.</span></div>
+						<div class="card-identity">
+							<h2 class="card-name" id="preview-name">Votre nom</h2>
+							<p class="card-role" id="preview-role">Fonction</p>
+							<p class="card-company" id="preview-organization">Organisation</p>
+						</div>
+						<div class="card-divider"></div>
+						<div class="card-details" id="preview-details"></div>
+						<p class="card-note" id="preview-note"></p>
+						<div class="card-bottom"><span>Coordonnées personnelles</span><span>vCard 3.0</span></div>
+					</article>
+					<div class="actions">
+						<button id="download-button" type="button">Télécharger la carte</button>
+						<button id="copy-button" class="secondary" type="button">Copier le vCard</button>
+					</div>
+					<p class="status" id="status-message" role="status" aria-live="polite"></p>
+				</section>
+			</div>
+		</main>
+	</div>
+
+	<script>
+		const form = document.querySelector("#contact-form");
+		const statusMessage = document.querySelector("#status-message");
+		const fields = Object.fromEntries(
+			[...form.elements].filter((element) => element.name).map((element) => [element.name, element])
+		);
+
+		function fieldValue(name) {
+			return fields[name].value.trim();
+		}
+
+		function fullName() {
+			return [fieldValue("given-name"), fieldValue("family-name")].filter(Boolean).join(" ");
+		}
+
+		function escapeVCard(value) {
+			return value.replace(/\\/g, "\\\\").replace(/\r?\n/g, "\\n").replace(/([,;])/g, "\\$1");
+		}
+
+		function vCardText() {
+			const name = fullName();
+			const familyName = fieldValue("family-name");
+			const givenName = fieldValue("given-name");
+			const lines = [
+				"BEGIN:VCARD",
+				"VERSION:3.0",
+				`N:${escapeVCard(familyName)};${escapeVCard(givenName)};;;`,
+				`FN:${escapeVCard(name)}`
+			];
+			const optionalProperties = [
+				["role", "TITLE"],
+				["organization", "ORG"],
+				["phone", "TEL;TYPE=CELL"],
+				["email", "EMAIL;TYPE=INTERNET"],
+				["website", "URL"],
+				["address", "LABEL;TYPE=WORK"]
+			];
+
+			for (const [fieldName, property] of optionalProperties) {
+				const value = fieldValue(fieldName);
+				if (value) lines.push(`${property}:${escapeVCard(value)}`);
+			}
+
+			if (fieldValue("note")) lines.push(`NOTE:${escapeVCard(fieldValue("note"))}`);
+			lines.push("END:VCARD");
+			return `${lines.join("\r\n")}\r\n`;
+		}
+
+		function safeWebsite(value) {
+			if (!value) return "";
+			try {
+				const url = new URL(value);
+				return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+			} catch {
+				return "";
+			}
+		}
+
+		function updatePreview() {
+			const name = fullName();
+			document.querySelector("#preview-name").textContent = name || "Votre nom";
+			document.querySelector("#preview-role").textContent = fieldValue("role") || "Fonction";
+			document.querySelector("#preview-organization").textContent = fieldValue("organization") || "Organisation";
+			document.querySelector("#preview-note").textContent = fieldValue("note");
+
+			const details = document.querySelector("#preview-details");
+			details.replaceChildren();
+			const entries = [
+				[fieldValue("email"), `mailto:${fieldValue("email")}`],
+				[fieldValue("phone"), `tel:${fieldValue("phone").replace(/[^+\d]/g, "")}`],
+				[fieldValue("website"), safeWebsite(fieldValue("website"))],
+				[fieldValue("address"), ""]
+			];
+
+			for (const [label, href] of entries) {
+				if (!label) continue;
+				const item = href ? document.createElement("a") : document.createElement("span");
+				item.className = "card-detail";
+				item.textContent = label;
+				if (href) {
+					item.href = href;
+					if (href.startsWith("http")) {
+						item.target = "_blank";
+						item.rel = "noreferrer";
+					}
+				}
+				details.append(item);
+			}
+		}
+
+		form.addEventListener("input", updatePreview);
+
+		document.querySelector("#download-button").addEventListener("click", () => {
+			if (!fullName()) {
+				statusMessage.textContent = "Ajoutez au moins un prénom ou un nom pour créer votre carte.";
+				fields["given-name"].focus();
+				return;
+			}
+
+			const blob = new Blob([vCardText()], { type: "text/vcard;charset=utf-8" });
+			const downloadUrl = URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			const familyName = fieldValue("family-name") || fieldValue("given-name");
+			link.href = downloadUrl;
+			link.download = `${familyName.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-")}.vcf`;
+			link.click();
+			URL.revokeObjectURL(downloadUrl);
+			statusMessage.textContent = "Votre carte de contact a été téléchargée.";
+		});
+
+		document.querySelector("#copy-button").addEventListener("click", async () => {
+			if (!fullName()) {
+				statusMessage.textContent = "Ajoutez au moins un prénom ou un nom pour créer votre carte.";
+				fields["given-name"].focus();
+				return;
+			}
+
+			try {
+				await navigator.clipboard.writeText(vCardText());
+				statusMessage.textContent = "Le contenu vCard a été copié.";
+			} catch {
+				statusMessage.textContent = "La copie est indisponible dans ce navigateur. Téléchargez plutôt la carte.";
+			}
+		});
+
+		updatePreview();
+	</script>
+</body>
+</html>
 
